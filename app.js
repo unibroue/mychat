@@ -6,6 +6,7 @@
 var express = require('express')
   , routes = require('./routes')
   , user = require('./routes/user')
+  , about = require('./routes/about')
   , http = require('http')
   , path = require('path');
 
@@ -19,7 +20,7 @@ app.configure(function(){
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.methodOverride());
-  app.use(express.cookieParser('your secret here'));
+  app.use(express.cookieParser('11Xda355Msx'));
   app.use(express.session());
   app.use(app.router);
   app.use(express.static(path.join(__dirname, 'public')));
@@ -30,6 +31,7 @@ app.configure('development', function(){
 });
 
 app.get('/', routes.index);
+app.get('/about', about.show);
 app.get('/users', user.list);
 
 http.createServer(app).listen(app.get('port'), function(){

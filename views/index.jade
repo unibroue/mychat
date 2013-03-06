@@ -1,5 +1,8 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+	form(class='form-signin',method='post')
+		h2(class="form-signin-heading") Please sign in
+		input(type='text',id='username',class='input-block-level',placeholder='Username or Email address')
+		input(type='password',id='password',class='input-block-level',placeholder='Password')
+		input(type='button',id='send_login',class='btn btn-large btn-primary',value='Sign in')
