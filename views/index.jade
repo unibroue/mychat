@@ -35,6 +35,19 @@ block content
 			$('#userlist').append(userlist);
 		});
 
+		socket.on('updateloginrooms', function(rooms){
+			$('#room').empty();
+			var roomlist = '<option value=0>Please select a room</option>';
+			$.each(rooms, function(key,value){
+				roomlist = roomlist + '<option value="'+value+'">'+value+'</option>';
+			});
+			$('#room').append(roomlist);
+		});
+
+		socket.on('msgclient', function(msg){
+			alert(msg);
+		});
+
 		function switchRoom(room){
 			socket.emit('switchRoom', room);
 		}
@@ -62,9 +75,6 @@ block content
 		input.input-block-level(type='text',id='username',placeholder='Username or Email address')
 		input.input-block-level(type='password',id='password',placeholder='Password')
 		select(id='room')
-			option(value=0) Please select a room...
-			option(value='Main') Main
-			option(value='Sub') SubRoom
 		input(class='btn btn-large btn-primary',type='button',id='send_login',value='Sign in')
 
 	div(id='chat_container',style='height: 600px;')

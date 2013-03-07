@@ -14,7 +14,7 @@ var express = require('express')
 var connection = mysql.createConnection({
   host : 'localhost',
   user : 'root',
-  password : '',
+  password : '1379qaz1',
   database : 'chat',
 });
 
@@ -22,6 +22,7 @@ var app = express();
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
+  app.set('ip', process.env.IP || "192.168.111.254");
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.favicon());
@@ -42,8 +43,8 @@ app.get('/', routes.index);
 app.get('/about', about.show);
 app.get('/users', user.list);
 
-var server = http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
+var server = http.createServer(app).listen( function(){
+  console.log("Express server listening on " +app.get('ip') + ":" + app.get('port'));
 });
 
 connection.connect(function(err){
@@ -51,13 +52,31 @@ connection.connect(function(err){
 });
 
 var usernames = {};
-var rooms = ['Main','Sub'];
+var rooms = new Array();
+
+connection.query('SELECT * FROM rooms', function(err,rows,fields) {
+  if(err) throw err;
+  console.log("Total of " + rows.length + " found!");
+  if(rows.length > 0) {
+      for (var i=0; i<rows.length;i++)
+      {
+        console.log("Adding room " + i + " " + rows[i].roomname)
+        rooms[i] = rows[i].roomname;
+      }
+  }
+});
 
 var io = require('socket.io').listen(server);
-
 io.sockets.on('connection', function (socket) {
+
   var rAddr = socket.handshake.address;
   console.log("Connection established with "+rAddr.address+":"+rAddr.port)
+  if(rooms.length > 0)
+  {
+    socket.emit('updateloginrooms',rooms);
+  } else {
+    socket.emit('msgclient',"Impossible to find rooms! Please retry later!");
+  }
 
   socket.on('login', function(username,password,room) {
     console.log("Login from " + username + "@" + rAddr.address);
