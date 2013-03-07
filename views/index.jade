@@ -1,8 +1,76 @@
 extends layout
 
 block content
-	form(class='form-signin',method='post')
-		h2(class="form-signin-heading") Please sign in
-		input(type='text',id='username',class='input-block-level',placeholder='Username or Email address')
-		input(type='password',id='password',class='input-block-level',placeholder='Password')
-		input(type='button',id='send_login',class='btn btn-large btn-primary',value='Sign in')
+	script
+		var socket = io.connect('http://localhost:3000')
+		socket.on('activateChat', function(username, msg) {
+			$('.form-signin').hide();
+			$('#chat_container').show();
+			$('#conversation').append('<b>'+username+': </b>' + msg + '<br/>');
+		});
+
+		socket.on('updatechat', function(username, msg) {
+			$('#conversation').append('<b>'+username+': </b>' + msg + '<br/>');
+		});
+
+		socket.on('updaterooms', function(rooms, current_room) {
+			$('.chatrooms').empty();
+			var roomSelector = '<div class="btn-group"><a class="btn dropdown-toggle" data-toggle="dropdown" href="#"> Room Selector <span class="caret"></span></a><ul class="dropdown-menu">';
+			$.each(rooms, function(key, value){
+				if(value != current_room) {
+					roomSelector = roomSelector + '<li><a href="#" onclick="switchRoom(\''+ value +'\')">' + value + '</a></li>';
+				}
+			});
+			roomSelector = roomSelector + '</ul></div>';
+			$('.chatrooms').append(roomSelector);
+		});
+
+		socket.on('updateusers', function(users){
+			$('#userlist').empty();
+			var userlist = '<ul class="nav nav-list">';
+			$.each(users, function(key,value){
+				userlist = userlist + '<li><a href="#"">' + value + '</a></li>';
+			});
+			userlist = userlist + '</ul>';
+			$('#userlist').append(userlist);
+		});
+
+		function switchRoom(room){
+			socket.emit('switchRoom', room);
+		}
+
+		$(function(){
+			$('#send_login').click( function(){
+				var username = $('#username').val();
+				var password = $('#password').val();
+				var room = $('#room').val();
+				$('#username').val('');
+				$('#password').val('');
+				$('#room').val('');
+				socket.emit('login', username, password, room);
+			});
+
+			$('#sendchatmsg').click( function(){
+				var chatmsg = $('#chatmsg').val();
+				$('#chatmsg').val('');
+				socket.emit('sendChat',chatmsg);
+			});
+		});
+
+	form.form-signin(method='post')
+		h2.form-signin-heading Please sign in
+		input.input-block-level(type='text',id='username',placeholder='Username or Email address')
+		input.input-block-level(type='password',id='password',placeholder='Password')
+		select(id='room')
+			option(value=0) Please select a room...
+			option(value='Main') Main
+			option(value='Sub') SubRoom
+		input(class='btn btn-large btn-primary',type='button',id='send_login',value='Sign in')
+
+	div(id='chat_container',style='height: 600px;')
+		div.chatrooms(style='margin-bottom: 10px;')
+		div.row(id='userlist',style='height: 100%; width: 20%; float: left;')
+		div.row(id='conversation',style='margin-left: 15px;')
+			form.form-inline
+				input(type='text',id='chatmsg',placeholder='Enter your message here')
+				input(class='btn',type='button',id='sendchatmsg',value='Send')
